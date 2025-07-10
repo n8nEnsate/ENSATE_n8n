@@ -1,0 +1,165 @@
+{
+  "name": "Agent 4",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "edb573df-29d8-40ca-ad1a-1c2682d6795d",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -440,
+        -120
+      ],
+      "id": "c25e14f0-4c82-4a06-bfbb-64cef53bd6b1",
+      "name": "Webhook",
+      "webhookId": "edb573df-29d8-40ca-ad1a-1c2682d6795d"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -440,
+        40
+      ],
+      "id": "4e71330f-221c-4e03-b29c-17a0db0afa31",
+      "name": "When chat message received",
+      "webhookId": "bfdb0d24-1d88-4a19-bd08-d3f75ce561a5"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Tu es l'agent de l'ENSA Tétouan chargé d'envoyer aux candidats un mail de convocation pour les concours d'accès aux classes préparatoires.\n\nVoici les données :\n- Nom : {{nom}}\n- Email : {{email}}\n- Date de convocation : {{date}}\n- Heure : {{heure}}\n- Salle : {{salle}}\n\nGénère un message clair et poli dans ce style :\n\nBonjour {nom de l'étudiant},\n\nVous êtes convoqué(e) à l’examen d’entrée ENSATE le {date de convocation} à {heure}, salle {numéro de salle}, ENSA TETOUAN.\n\nMerci de vous présenter muni(e) de votre pièce d'identité.\n\nCordialement,\nAdministration ENSATE\n\nRéponds uniquement avec le message email.\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -220,
+        40
+      ],
+      "id": "e5fe43fe-ae01-4a83-b4c9-2822758bdc23",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -200,
+        260
+      ],
+      "id": "290225a1-2801-4492-97c9-5a136db207f0",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "9E6uasTz3u4hWKe2",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -120,
+        220
+      ],
+      "id": "52eea5da-68dd-442b-aae9-1cd8ffdab718",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        40,
+        260
+      ],
+      "id": "708dcef8-2ac7-4982-ae27-04e427297771",
+      "name": "Gmail",
+      "webhookId": "7e35a8a3-6173-4c1e-a2e4-a912fd0cddca",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "vD9nKScRKnRbppOd",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "df15ef3e-cf02-43d6-9e78-2c8accb1f588",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6743183a4e3874afb03fd917ba0eb084090edfdeaddd203b0d1fa1d68cbd8df0"
+  },
+  "id": "EpnY6dOWzuXfQ5os",
+  "tags": []
+}

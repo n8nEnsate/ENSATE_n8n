@@ -1,0 +1,423 @@
+{
+  "name": "Agent_AI_Verifier",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/verify-identity",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -600,
+        -100
+      ],
+      "id": "74fc9295-3af6-4072-94bc-b2e2a103cbe1",
+      "name": "Webhook",
+      "webhookId": "0a4634e9-de4a-4e2f-a58b-13369d880395"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const base64String = $json[\"body\"].selfie;\n\nif (!base64String.startsWith(\"data:image\")) {\n  throw new Error(\"Missing data:image/jpeg;base64 prefix\");\n}\n\nconst matches = base64String.match(/^data:(.+);base64,(.+)$/);\nif (!matches || matches.length !== 3) {\n  throw new Error(\"Invalid Base64 image format\");\n}\n\nconst mimeType = matches[1]; // e.g., image/jpeg\nconst base64Data = matches[2]; // actual Base64 data\n\n// Return binary using n8n helpers\nreturn {\n  binary: {\n    data: {\n      data: base64Data,          // 👈 base64 string\n      mimeType,                  // image/jpeg\n      fileName: \"selfie.jpeg\"\n    }\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        -100
+      ],
+      "id": "9df83a83-fd26-4d92-9004-ea9e698b70db",
+      "name": "Decode Selfie"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://mon-application.cognitiveservices.azure.com/face/v1.0/detect",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Ocp-Apim-Subscription-Key",
+              "value": "1JifdnewSbKs76BOqwj8NTt46LkxKuytXGtDYNkiLkINIXGx9dNgJQQJ99BGACmepeSXJ3w3AAAKACOGJKVe"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/octet-stream"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1060,
+        60
+      ],
+      "id": "3bd9d859-4605-4e4e-9915-3d6b398e2bc5",
+      "name": "Detect Face",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM candidates\nWHERE assigned_room_id = {{ $('Webhook').item.json.body.roomId }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        40,
+        -100
+      ],
+      "id": "f19d8bb0-4965-432c-8eb0-ebe61d271019",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "R6DLzLUoRL9diWVv",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.photo_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "candidatePhoto"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -600,
+        120
+      ],
+      "id": "384acb6d-3776-4008-ba98-4c710a514435",
+      "name": "Download Candidate Photo"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://mon-application.cognitiveservices.azure.com/face/v1.0/detect",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "returnFaceId",
+              "value": "true"
+            },
+            {
+              "name": "returnFaceLandmarks",
+              "value": "false"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Ocp-Apim-Subscription-Key",
+              "value": "1JifdnewSbKs76BOqwj8NTt46LkxKuytXGtDYNkiLkINIXGx9dNgJQQJ99BGACmepeSXJ3w3AAAKACOGJKVe"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "binary: candidatePhoto",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1060,
+        280
+      ],
+      "id": "24790aca-208d-446a-9ab8-f35a759a44d6",
+      "name": "Detect Face (Candidate Photo)",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## Azure Face API\nI hit a roadblock with Azure Face API. The 403 Forbidden error isn’t about the API key—it’s because Face Identification and Verification need special approval from Microsoft. By default, only Face Detection works.\n\nTo avoid delays, I’m switching to an alternative API unless you think we should request access from Azure. [Guide](https://docs.n8n.io/workflows/sticky-notes/)",
+        "height": 720,
+        "width": 340
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1120,
+        -200
+      ],
+      "typeVersion": 1,
+      "id": "8d68cb0f-53ff-444b-acce-5ae31ba1130c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api-us.faceplusplus.com/facepp/v3/compare",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "multipart/form-data"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "UdZ7Jy3VZIB8vW-5FhpDXqvxGE2C07l6"
+            },
+            {
+              "name": "api_secret",
+              "value": "i6ctnS5H1UulULz7ox6BCIcxtaTRlxfN"
+            },
+            {
+              "name": "image_base64_1",
+              "value": "={{ $('Extract Base64 for Selfie').item.json.image_base64_1 }}"
+            },
+            {
+              "name": "image_base64_2",
+              "value": "={{ $json.image_base64_2 }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        40,
+        120
+      ],
+      "id": "cffb0880-f68e-40ed-99f0-52c812dc83c2",
+      "name": "Compare Faces (Face++)"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "destinationKey": "image_base64_1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -100
+      ],
+      "id": "eed9110e-a29c-4bb2-ab1a-0483e210d34e",
+      "name": "Extract Base64 for Selfie"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "binaryPropertyName": "candidatePhoto",
+        "destinationKey": "image_base64_2",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        120
+      ],
+      "id": "f824f5b5-65c6-4e80-91c3-e9e4fda60841",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "operation": "resize",
+        "dataPropertyName": "candidatePhoto",
+        "width": 75000,
+        "height": null,
+        "options": {
+          "fileName": "candidatePhotoResized",
+          "format": "jpeg"
+        }
+      },
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        120
+      ],
+      "id": "90b41657-48b4-468b-961b-cd79c588780f",
+      "name": "Edit Image"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9ab3e8c3-adbf-4b3d-a043-028fa7551287",
+              "name": "confidence",
+              "value": "={{ $json.confidence }}",
+              "type": "string"
+            },
+            {
+              "id": "1837711b-9e6d-47e6-add4-4df7ee97d6ed",
+              "name": "match",
+              "value": "={{$json[\"confidence\"] > 75 ? \"✅ Match\" : \"❌ No Match\"}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -600,
+        340
+      ],
+      "id": "85fb6848-cb95-4323-9e14-2d803d5c6f9e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -380,
+        340
+      ],
+      "id": "68c371a0-f995-4d8a-807a-b8761a858696",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Decode Selfie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decode Selfie": {
+      "main": [
+        [
+          {
+            "node": "Extract Base64 for Selfie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect Face": {
+      "main": [
+        []
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Download Candidate Photo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Candidate Photo": {
+      "main": [
+        [
+          {
+            "node": "Edit Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare Faces (Face++)": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Base64 for Selfie": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Compare Faces (Face++)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Image": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7ea011ce-9d13-445d-ba60-607e3a8d480f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0749e73b48cf3a94ff50d37b4b94008df8f3eb05623df06cfe06044e993a59aa"
+  },
+  "id": "jOkKTmLOpPYHFg5D",
+  "tags": []
+}

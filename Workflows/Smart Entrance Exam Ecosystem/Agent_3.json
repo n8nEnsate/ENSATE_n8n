@@ -1,0 +1,115 @@
+{
+  "name": "Attribution Salles et Places",
+  "nodes": [
+    {
+      "parameters": {
+        "sheetId": "ID_FEUILLE_GOOGLE",
+        "range": "Etudiants!A1:F",
+        "valueRenderMode": "FORMATTED_VALUE"
+      },
+      "id": 1,
+      "name": "Lire Etudiants",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sheetId": "ID_FEUILLE_GOOGLE",
+        "range": "Salle!A1:B",
+        "valueRenderMode": "FORMATTED_VALUE"
+      },
+      "id": 2,
+      "name": "Lire Salles",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        200,
+        500
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": 3,
+      "name": "Attribuer Salles et Places",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        500,
+        400
+      ],
+      "notes": "Fonction qui attribue à chaque étudiant une salle et une place"
+    },
+    {
+      "parameters": {
+        "sheetId": "ID_FEUILLE_GOOGLE",
+        "range": "Etudiants!A1",
+        "valueInputMode": "USER_ENTERED"
+      },
+      "id": 4,
+      "name": "Mettre à jour Etudiants",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        800,
+        400
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Lire Etudiants": {
+      "main": [
+        [
+          {
+            "node": "Attribuer Salles et Places",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire Salles": {
+      "main": [
+        [
+          {
+            "node": "Attribuer Salles et Places",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Attribuer Salles et Places": {
+      "main": [
+        [
+          {
+            "node": "Mettre à jour Etudiants",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

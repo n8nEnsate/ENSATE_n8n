@@ -1,0 +1,145 @@
+{
+  "name": "Agent 1: Validator",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "ensate-validator",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-440, -120],
+      "id": "webhook-node",
+      "name": "Candidate Data Input",
+      "webhookId": "validator-webhook-123"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Enhanced validation with error logging\nconst validateCIN = (cin) => {\n  const regex = /^[A-Za-z]{1,2}\\d{6}$/;\n  if (!cin) return { isValid: false, error: 'CIN_REQUIRED' };\n  if (!regex.test(cin)) return { isValid: false, error: 'CIN_FORMAT_INVALID' };\n  return { isValid: true };\n};\n\nconst validateEmail = (email) => {\n  const regex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n  if (!email) return { isValid: false, error: 'EMAIL_REQUIRED' };\n  if (!regex.test(email)) return { isValid: false, error: 'EMAIL_FORMAT_INVALID' };\n  return { isValid: true };\n};\n\nconst candidate = $input.all()[0].json;\n\n// Validate fields\nconst cinValidation = validateCIN(candidate.cin);\nconst emailValidation = validateEmail(candidate.email);\n\n// Prepare result\nconst errors = {};\nif (!cinValidation.isValid) errors.cin = cinValidation.error;\nif (!emailValidation.isValid) errors.email = emailValidation.error;\n\nconst isValid = Object.keys(errors).length === 0;\n\n// Add audit trail\nconst validationLog = {\n  timestamp: new Date().toISOString(),\n  candidateId: candidate.id || 'unknown',\n  validationResult: isValid ? 'PASSED' : 'FAILED',\n  errors: isValid ? null : errors\n};\n\nreturn {\n  json: {\n    isValid,\n    validatedData: isValid ? candidate : null,\n    errors: isValid ? null : errors,\n    validationLog,\n    _agent: \"VALIDATOR_AGENT_V2\"\n  }\n};",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [-220, -120],
+      "id": "validation-node",
+      "name": "Enhanced Validator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "value1": "={{$json.isValid}}",
+              "operation": "equals",
+              "value2": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [0, -120],
+      "id": "decision-node",
+      "name": "Validation Check"
+    },
+    {
+      "parameters": {
+        "resource": "logs",
+        "operation": "append",
+        "sheetId": "={{$env.VALIDATION_LOGS_SHEET}}",
+        "range": "A1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [-220, 100],
+      "id": "logging-node",
+      "name": "Log Validation Result",
+      "credentials": {
+        "googleSheetsOAuth2Api": "={{$credentials.GOOGLE_SHEETS}}"
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [200, -220],
+      "id": "success-node",
+      "name": "Forward to Agent 2",
+      "credentials": {
+        "httpBasicAuth": "={{$credentials.AGENT2_API}}"
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [200, -20],
+      "id": "error-node",
+      "name": "Notify Invalid Submission",
+      "credentials": {
+        "smtp": "={{$credentials.ENSA_SMTP}}"
+      }
+    }
+  ],
+  "connections": {
+    "Candidate Data Input": {
+      "main": [
+        [
+          {
+            "node": "Enhanced Validator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enhanced Validator": {
+      "main": [
+        [
+          {
+            "node": "Validation Check",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Validation Result",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Validation Check": {
+      "main": [
+        [
+          {
+            "node": "Forward to Agent 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Invalid Submission",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v2"
+  },
+  "active": true,
+  "tags": ["ENSATE", "Validation", "Automation"],
+  "notes": "Enhanced validator agent with logging and error handling"
+}
