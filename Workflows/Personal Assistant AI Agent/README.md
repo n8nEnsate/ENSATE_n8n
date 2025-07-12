@@ -81,7 +81,7 @@ Handles Gmail actions:
 * Retrieve recent emails or filter by sender.
 
 **📸 Workflow Screenshot:**
-![Email Agent Workflow](images\email_agent_workflow.png)
+![Email Agent Workflow](images/email_agent_workflow.png)
 
 ---
 
@@ -94,7 +94,7 @@ The central orchestrator:
 * Determines which agent to use based on user input.
 
 **📸 Workflow Screenshot:**
-![Personal Assistant Workflow](images\personal_assistant_workflow.png)
+![Personal Assistant Workflow](images/personal_assistant_workflow.png)
 
 ---
 
@@ -105,7 +105,7 @@ Manages project data stored in Google Sheets:
 * Retrieve and update project details.
 
 **📸 Workflow Screenshot:**
-![Projects Agent Workflow](images\projects_agent_workflow.png)
+![Projects Agent Workflow](images/projects_agent_workflow.png)
 
 ---
 
@@ -118,7 +118,7 @@ Finds information using:
 * SerpAPI (fallback).
 
 **📸 Workflow Screenshot:**
-![Research Agent Workflow](images\research_agent_workflow.png)
+![Research Agent Workflow](images/research_agent_workflow.png)
 
 ---
 
