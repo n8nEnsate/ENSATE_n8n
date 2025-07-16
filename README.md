@@ -27,6 +27,6 @@ Projet collaboratif mené par :
 - [✔️] Intégrations : Google Calendar, WhatsApp Business API, Email SMTP
 - [✔️] Utilisation de **ngrok** pour exposer n8n localement
 - [✔️] Manipulation de prompt engineering et LLM chaining
-
+n8n
 
 
