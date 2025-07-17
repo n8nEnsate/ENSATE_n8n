@@ -178,5 +178,3 @@ It demonstrates my ability to design and implement a **complex AI workflow** cap
 ## 📄 License
 
 This project is for educational and internship purposes.
-
-
