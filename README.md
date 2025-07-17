@@ -28,5 +28,6 @@ Projet collaboratif mené par :
 - [✔️] Utilisation de **ngrok** pour exposer n8n localement
 - [✔️] Manipulation de prompt engineering et LLM chaining
 n8n
+nn8NN
 
-
+HI TEST
