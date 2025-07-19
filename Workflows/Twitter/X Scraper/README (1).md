@@ -5,12 +5,6 @@ This is a fully automated **Twitter/X Scraper** built using **n8n**. It fetches 
 
 ---
 
-## 🌐 Live Workflow Layout
-
-![n8n Workflow Screenshot](./Screenshot_2025-07-19_134030.png)
-
----
-
 ## 📌 Features
 
 - 🔎 Twitter/X advanced search via API
@@ -110,8 +104,8 @@ Tweets are exported to a Google Sheet connected via OAuth2. The columns match th
 ## 🧑‍💻 Author
 
 **Anas Elhassouni**  
-*AI Automation Engineer in Progress*  
-GitHub: [@yourhandle](https://github.com/)  
+*big data & AI Engineer in Progress*  
+GitHub: [@ANASKITE8](https://github.com/)  
 n8n / JS / Automation
 
 ---
